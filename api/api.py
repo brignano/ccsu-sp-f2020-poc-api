@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from flask_restful import Resource, Api, reqparse
+from flask_restplus import Resource, Api, reqparse
 
 app = Flask(__name__)
 api = Api(app)
@@ -28,14 +28,14 @@ claimList = [
     }
 ]
 
-class ClaimsApi(Resource):
+@api.route('/claims', endpoint='claims')
+class ClaimsApi(Resource):    
+    @api.doc(params={
+        'policyNumber': 'Policy number',
+        'category': 'Claim category'
+    })
     def get(self):
-        """ Get claims from database
-
-        Optional Parameters:
-        policyNumber
-        category
-        """
+        """Get claim(s) from database"""
         parser = reqparse.RequestParser()
         
         parser.add_argument('policyNumber', required=False, dest='policyNumber')
@@ -72,8 +72,15 @@ class ClaimsApi(Resource):
 
         return jsonify(results)
         
-    
+
+    @api.doc(params={
+        'policyNumber': {'description':'The policy number', 'required': 'True'},
+        'location': {'description':'Address of the Loss', 'required': 'True'},
+        'category': {'description':'Category of the claim', 'required': 'True'},
+        'description': {'description':'Descrition of the claim', 'required': 'True'},
+    })
     def post(self):
+        """Insert claim into database"""
         parser = reqparse.RequestParser()
         
         parser.add_argument('policyNumber', required=True, dest='policyNumber')
