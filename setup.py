@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
      name='ccsu-sp-f2020-poc-api',  
-     version='0.1',
+     version='1.0',
      scripts=['ccsu-sp-f2020-poc-api'] ,
      author="Anthony Brignano",
      author_email="anthony.brignano@gmail.com",
