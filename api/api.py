@@ -7,32 +7,16 @@ api = Api(app, version='1.0', title='Claims API',
 
 ns = api.namespace('claims', description='Claims operations')
 
-claimList = [
-    {
-        "id": 0,
-        "policyNumber": "123456",
-        "location": "10 Main Street, Farmington, CT, 06032",
-        "category": "Property Damage",
-        "description": "Car accident",
-    },
-    {
-        "id": 1,
-        "policyNumber": "123456",
-        "location": "10 Main Street, Farmington, CT, 06032",
-        "category": "Bodily Injury",
-        "description": "Car accident",
-    },
-    {
-        "id": 2,
-        "policyNumber": "987654",
-        "location": "10 Main Street, Farmington, CT, 06032",
-        "category": "Property Damage",
-        "description": "Car accident",
-    }
-]
+
+class Claim(object):
+    id = ''
+    policyNumber = ''
+    location = ''
+    category = ''
+    description = ''
 
 
-class ClaimDAO(object):
+class ClaimDao(object):
     def __init__(self):
         self.counter = 0
         self.claims = [
@@ -59,11 +43,11 @@ class ClaimDAO(object):
             }
         ]
 
-    def get(self, id):
+    def get(self, claim_id) -> Claim:
         for claim in self.claims:
-            if claim['id'] == id:
-                return todo
-        api.abort(404, "Claim {} doesn't exist".format(id))
+            if claim['id'] == claim_id:
+                return claim
+        api.abort(404, "Claim {} doesn't exist".format(claim_id))
 
     def create(self, data):
         claim = data
@@ -71,13 +55,13 @@ class ClaimDAO(object):
         self.claims.append(claim)
         return claim
 
-    def update(self, id, data):
-        claim = self.get(id)
+    def update(self, policy_number, data):
+        claim = self.get(policy_number)
         claim.update(data)
         return claim
 
-    def delete(self, id):
-        claim = self.get(id)
+    def delete(self, policy_number):
+        claim = self.get(policy_number)
         self.claims.remove(claim)
 
 
@@ -100,30 +84,14 @@ class ClaimsApi(Resource):
 
         # Case 1: both parameters are None - return all claims
         if policy_number is None and category is None:
-            # TODO: update to database SELECT query
-            return jsonify(claimList)
+            return jsonify(ClaimDao())
 
         results = []
 
         # Case 2: only Policy Number is passed - return all claims for said Policy Number
         if policy_number is not None and category is None:
-            # TODO: update to database SELECT query
-            for claim in claimList:
-                if policy_number == claim['policyNumber']: results.append(claim)
-
-        # Case 3: only Category is passed - return all claims listed under said Category
-        if policy_number is None and category is not None:
-            # TODO: update to database SELECT query
-            for claim in claimList:
-                if claim['category'] == category:
-                    results.append(claim)
-
-        # Case 4: both parameters are passed - return all claims listed under said Category for said Policy Number
-        if policy_number is not None and category is not None:
-            # TODO: update to database SELECT query
-            for claim in claimList:
-                if policy_number == claim['policyNumber'] and category == claim['category']:
-                    results.append(claim)
+            dao = ClaimDao()
+            return dao.get(claim_id=policy_number)
 
         return jsonify(results)
 
@@ -143,22 +111,21 @@ class ClaimsApi(Resource):
         parser.add_argument('description', required=True, dest='description')
 
         args = parser.parse_args()
-        policyNumber = args['policyNumber']
+        policy_number = args['policyNumber']
         location = args['location']
         category = args['category']
         description = args['description']
 
-        # TODO: insert into database
-        claimList.append(
-            {
-                'policyNumber': policyNumber,
+        dao = ClaimDao()
+
+        return dao.create(
+            data={
+                'policyNumber': policy_number,
                 'location': location,
                 'category': category,
                 'description': description,
             }
         )
-
-        return
 
 
 if __name__ == '__main__':
