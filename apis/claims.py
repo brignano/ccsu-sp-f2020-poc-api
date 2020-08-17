@@ -72,8 +72,8 @@ class ClaimList(Resource):
 
 
 @api.route('/')
-@api.param('policy_number', 'The claim policy number')
-@api.param('category', 'The claim category')
+@api.param('policy_number', 'The policy number of the claim')
+@api.param('category', 'The category of the claim')
 @api.response(404, 'Claim not found')
 class Claim(Resource):
     @api.doc('get_claim')
