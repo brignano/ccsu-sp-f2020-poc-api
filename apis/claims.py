@@ -1,11 +1,7 @@
-from flask import Flask, jsonify
-from flask_restplus import Resource, Api, reqparse
+from flask import jsonify
+from flask_restplus import Resource, reqparse, Namespace
 
-app = Flask(__name__)
-api = Api(app, version='1.0', title='Claims API',
-          description='Enable consumer to interact with (read/write) claims in the database')
-
-ns = api.namespace('claims', description='Claims operations')
+api = Namespace('claims', description='Claims related operations')
 
 
 class Claim(object):
@@ -65,9 +61,9 @@ class ClaimDao(object):
         self.claims.remove(claim)
 
 
-@ns.route('', endpoint='claims')
+@api.route('/')
 class ClaimsApi(Resource):
-    @ns.doc(params={
+    @api.doc(params={
         'policyNumber': 'Policy number',
         'category': 'Claim category'
     })
@@ -95,11 +91,11 @@ class ClaimsApi(Resource):
 
         return jsonify(results)
 
-    @ns.doc(params={
+    @api.doc(params={
         'policyNumber': {'description': 'The policy number', 'required': 'True'},
         'location': {'description': 'Address of the Loss', 'required': 'True'},
         'category': {'description': 'Category of the claim', 'required': 'True'},
-        'description': {'description': 'Descrition of the claim', 'required': 'True'},
+        'description': {'description': 'Description of the claim', 'required': 'True'},
     })
     def post(self):
         """Insert claim into the database"""
@@ -126,7 +122,3 @@ class ClaimsApi(Resource):
                 'description': description,
             }
         )
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
