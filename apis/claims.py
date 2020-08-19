@@ -2,7 +2,6 @@ from flask_restplus import Resource, Namespace, fields, reqparse
 
 api = Namespace('claims', description='Claims related operations', path='/claims')
 claim_model = api.model('Claim', {
-    'id': fields.String(required=True, description="The claim identifier"),
     'policy_number': fields.String(required=True, description="The policy number making the claim"),
     'location': fields.String(required=True, description="The location of the loss"),
     'category': fields.String(required=True, description="The claim category"),
@@ -15,21 +14,18 @@ class ClaimDao(object):
         self.counter = 0
         self.claims = [
             {
-                "id": 0,
                 "policy_number": "123456",
                 "location": "10 Main Street, Farmington, CT, 06032",
                 "category": "Property Damage",
                 "description": "Car accident",
             },
             {
-                "id": 1,
                 "policy_number": "123456",
                 "location": "10 Main Street, Farmington, CT, 06032",
                 "category": "Bodily Injury",
                 "description": "Car accident",
             },
             {
-                "id": 2,
                 "policy_number": "987654",
                 "location": "10 Main Street, Farmington, CT, 06032",
                 "category": "Property Damage",
@@ -57,7 +53,6 @@ class ClaimDao(object):
 
     def create(self, data):
         claim = data
-        claim['id'] = self.counter = self.counter + 1
         self.claims.append(claim)
         return claim
 
@@ -72,11 +67,11 @@ class ClaimList(Resource):
 
 
 @api.route('/')
-@api.param('policy_number', 'The policy number of the claim')
-@api.param('category', 'The category of the claim')
-@api.response(404, 'Claim not found')
 class Claim(Resource):
     @api.doc('get_claim')
+    @api.param('policy_number', 'The policy number of the claim')
+    @api.param('category', 'The category of the claim')
+    @api.response(404, 'Claim not found')
     @api.marshal_with(claim_model, mask='')
     def get(self):
         """Get claim(s) from the database"""
@@ -85,3 +80,11 @@ class Claim(Resource):
 
         dao = ClaimDao()
         return dao.get(policy_number=policy_number, category=category)
+
+    @api.doc('add_claim')
+    @api.expect(claim_model)
+    @api.marshal_with(claim_model, code=201, mask='')
+    def post(self):
+        """Add claim to the database"""
+        dao = ClaimDao()
+        return dao.create(api.payload)
