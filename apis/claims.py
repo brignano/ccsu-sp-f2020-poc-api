@@ -76,7 +76,7 @@ class ClaimList(Resource):
         return ClaimDao().claims
 
 
-@api.route('/')
+@api.route('')
 class Claim(Resource):
     @api.doc('get_claim')
     @api.param('policy_number', 'The policy number of the claim')
