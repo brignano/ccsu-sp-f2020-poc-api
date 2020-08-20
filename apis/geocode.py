@@ -10,20 +10,15 @@ base_url = 'https://maps.googleapis.com/maps/api/geocode/json'
 @api.route('/')
 class GeocodeApi(Resource):
     @api.doc(params={
-        'address': 'Address for geocoding',
+        'location': 'Location to be geocoded',
     })
     def get(self):
         """Get latitude and longitude of address"""
-        parser = reqparse.RequestParser()
-
-        parser.add_argument('address', required=True, dest='address')
-
-        args = parser.parse_args()
-        address = args['address']
+        location = reqparse.request.args.get('location')
         api_key = os.environ.get('GOOGLE_API_KEY')
-        params = {'address': address, 'key': api_key}
+        params = {'address': location, 'key': api_key}
 
-        if address is not None:
+        if location is not None:
             r = requests.get(url=base_url, params=params)
             data = r.json()
             latitude = data['results'][0]['geometry']['location']['lat']
