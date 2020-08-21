@@ -1,3 +1,6 @@
+import json
+import os
+
 from flask_restplus import Resource, Namespace, fields, reqparse
 
 api = Namespace('claims', description='Claims related operations', path='/claims')
@@ -7,41 +10,35 @@ claim_model = api.model('Claim', {
     'category': fields.String(required=True, description="The claim category"),
     'description': fields.String(required=True, description="The claim description"),
 })
-claim_dao_model = api.model('Claim', {
-    'id': fields.String(required=True, description="The claim identifier"),
+claim_dao_model = api.model('Claim Dao', {
+    'id': fields.Integer(required=True, description="The claim identifier"),
     'policy_number': fields.String(required=True, description="The policy number making the claim"),
     'location': fields.String(required=True, description="The location of the loss"),
     'category': fields.String(required=True, description="The claim category"),
     'description': fields.String(required=True, description="The claim description"),
 })
 
+claims_json_path = 'data/claims.json'
+
+
+def write_json(json_data):
+    site_root = os.path.realpath(os.path.dirname(__file__))
+    json_url = os.path.join(site_root, claims_json_path)
+    with open(json_url, 'w') as file_out:
+        json.dump(json_data, file_out)
+
+
+def read_json():
+    site_root = os.path.realpath(os.path.dirname(__file__))
+    json_url = os.path.join(site_root, claims_json_path)
+    with open(json_url) as file_in:
+        return json.load(file_in)
+
 
 class ClaimDao(object):
     def __init__(self):
         self.counter = 0
-        self.claims = [
-            {
-                "id": 0,
-                "policy_number": "123456",
-                "location": "10 Main Street, Farmington, CT, 06032",
-                "category": "Property Damage",
-                "description": "Car accident",
-            },
-            {
-                "id": 1,
-                "policy_number": "123456",
-                "location": "10 Main Street, Farmington, CT, 06032",
-                "category": "Bodily Injury",
-                "description": "Car accident",
-            },
-            {
-                "id": 2,
-                "policy_number": "987654",
-                "location": "10 Main Street, Farmington, CT, 06032",
-                "category": "Property Damage",
-                "description": "Car accident",
-            }
-        ]
+        self.claims = read_json()
 
     def get(self, policy_number=None, category=None):
 
@@ -62,9 +59,12 @@ class ClaimDao(object):
         return results
 
     def create(self, data):
-        claim = data
-        self.claims.append(claim)
-        return claim
+        claims_data = read_json()
+        claims_data.sort(key=lambda x: x['id'])
+        data['id'] = int(claims_data[(len(claims_data)-1)]['id']) + 1
+        claims_data.append(data)
+        write_json(claims_data)
+        return data
 
 
 @api.route('/all')
@@ -93,7 +93,7 @@ class Claim(Resource):
 
     @api.doc('add_claim')
     @api.expect(claim_model)
-    @api.marshal_with(claim_model, code=201, mask='')
+    @api.marshal_with(claim_model, mask='')
     def post(self):
         """Add claim to the database"""
         dao = ClaimDao()
