@@ -59,7 +59,7 @@ class ClaimDao(object):
         return results
 
     def create(self, data):
-        claims_data = read_json()
+        claims_data = self.claims
         claims_data.sort(key=lambda x: x['id'])
         data['id'] = int(claims_data[(len(claims_data)-1)]['id']) + 1
         claims_data.append(data)
